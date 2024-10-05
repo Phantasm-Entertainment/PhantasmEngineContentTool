@@ -3,8 +3,6 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include <wx/wx.h>
-
 namespace PECT
 {
     std::uint8_t ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
@@ -107,6 +105,27 @@ namespace PECT
         }
     }
 
+    bool ContentFile::RemoveTexture(const std::string& name)
+    {
+        for (auto& page : m_Pages)
+        {
+            auto it = page->m_Textures.begin();
+
+            while (it != page->m_Textures.end())
+            {
+                if ((*it)->Name == name)
+                {
+                    page->m_Textures.erase(it);
+                    return true;
+                }
+
+                ++it;
+            }
+        }
+
+        return false;
+    }
+
     void ContentFile::AddFont(const std::string& name, std::shared_ptr<FontData> data)
     {
         CheckName(name);
@@ -157,8 +176,47 @@ namespace PECT
                 }
             }
         }
+    }
 
-        wxMessageBox("added " + std::to_string(data->Chars.size()) + " font chars");
+    bool ContentFile::RemoveFont(const std::string& name)
+    {
+        auto it = m_FontEntries.begin();
+        bool found = false;
+
+        while (!found && it != m_FontEntries.end())
+        {
+            if ((*it).Name == name)
+            {
+                m_FontEntries.erase(it);
+                found = true;
+            }
+
+            ++it;
+        }
+
+        if (!found)
+        {
+            return false;
+        }
+
+        for (auto& page : m_Pages)
+        {
+            auto it = page->m_Textures.begin();
+
+            while (it != page->m_Textures.end())
+            {
+                if ((*it)->Name == name)
+                {
+                    page->m_Textures.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+        }
+
+        return true;
     }
 
     void ContentFile::SaveToFile(const std::string& path)

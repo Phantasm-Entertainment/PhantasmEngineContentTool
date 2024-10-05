@@ -22,14 +22,36 @@ namespace PECT
         menuBar->Append(atlasMenu, _T("&Atlas"));
         SetMenuBar(menuBar);
 
+        m_TextureList = new wxDataViewListCtrl(this, ID_TEXTURELIST, wxDefaultPosition, wxDefaultSize);
+        m_TextureList->SetMinSize(wxSize(100, 100));
+        wxDataViewTextRenderer* tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+        wxDataViewColumn* texturesColumn = new wxDataViewColumn("Textures", tr, 0);
+        m_TextureList->AppendColumn(texturesColumn);
+
+        m_FontList = new wxDataViewListCtrl(this, ID_FONTLIST, wxDefaultPosition, wxDefaultSize);
+        m_FontList->SetMinSize(wxSize(100, 100));
+        tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+        wxDataViewColumn* fontsColumn = new wxDataViewColumn("Fonts", tr, 0);
+        m_FontList->AppendColumn(fontsColumn);
+        
         m_Notebook = new wxNotebook(this, wxID_ANY);
+
+        wxFlexGridSizer* sizer = new wxFlexGridSizer(1, 3, 0, 0);
+        sizer->AddGrowableCol(2, 1);
+        sizer->AddGrowableRow(0, 2);
+        sizer->Add(m_TextureList, 1, wxEXPAND | wxSOUTH, 0);
+        sizer->Add(m_FontList, 1, wxEXPAND | wxSOUTH, 0);
+        sizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 0);
         
         Bind(wxEVT_MENU, &MainUI::OnMenuNew, this, ID_FILE_NEW);
         Bind(wxEVT_MENU, &MainUI::OnMenuOpen, this, ID_FILE_OPEN);
         Bind(wxEVT_MENU, &MainUI::OnMenuSave, this, ID_FILE_SAVE);
         Bind(wxEVT_MENU, &MainUI::OnAtlasAddImage, this, ID_ATLAS_ADDIMAGE);
         Bind(wxEVT_MENU, &MainUI::OnAtlasAddFont, this, ID_ATLAS_ADDFONT);
+        Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &MainUI::OnTextureListContext, this, ID_TEXTURELIST);
+        Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, &MainUI::OnFontListContext, this, ID_FONTLIST);
 
+        SetSizer(sizer);
         CenterOnScreen();
         Maximize();
     }
@@ -97,6 +119,29 @@ namespace PECT
         
         m_Notebook->DeleteAllPages();
         m_ContentFile = contentFile;
+        m_TextureList->DeleteAllItems();
+        m_FontList->DeleteAllItems();
+
+        for (const auto& pages : m_ContentFile->GetPages())
+        {
+            for (const auto& texture : pages->GetPageTextures())
+            {
+                if (!texture->IsFont)
+                {
+                    wxVector<wxVariant> list;
+                    list.push_back(texture->Name);
+                    m_TextureList->AppendItem(list);
+                }
+            }
+        }
+
+        for (const auto& font : m_ContentFile->GetFontEntries())
+        {
+            wxVector<wxVariant> list;
+            list.push_back(font.Name);
+            m_FontList->AppendItem(list);
+        }
+
         UpdateAtlasPages();
     }
 
@@ -131,6 +176,7 @@ namespace PECT
     {
         if (!m_ContentFile)
         {
+            wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
             return;
         }
 
@@ -161,6 +207,9 @@ namespace PECT
         }
 
         m_ContentFile->AddTexture(textDialog.GetValue().ToStdString(), static_cast<std::uint16_t>(w), static_cast<std::uint16_t>(h), data);
+        wxVector<wxVariant> list;
+        list.push_back(textDialog.GetValue().ToStdString());
+        m_TextureList->AppendItem(list);
         UpdateAtlasPages();
     }
 
@@ -168,6 +217,7 @@ namespace PECT
     {
         if (!m_ContentFile)
         {
+            wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
             return;
         }
 
@@ -215,8 +265,70 @@ namespace PECT
         }
         
         m_ContentFile->AddFont(textDialog.GetValue().ToStdString(), fontData);
+        wxVector<wxVariant> list;
+        list.push_back(textDialog.GetValue().ToStdString());
+        m_FontList->AppendItem(list);
         UpdateAtlasPages();
-        wxMessageBox(_T("Font successfully loaded!"), _T("a"), 5L, this);
+    }
+
+    void MainUI::OnTextureListContext(wxDataViewEvent& e)
+    {
+        wxMenu menu;
+        menu.Append(ID_TEXTURELIST_REMOVE, _T("Remove"));
+        menu.Bind(wxEVT_MENU, &MainUI::OnContextRemoveTexture, this);
+        PopupMenu(&menu);
+    }
+
+    void MainUI::OnFontListContext(wxDataViewEvent& e)
+    {
+        wxMenu menu;
+        menu.Append(ID_FONTLIST_REMOVE, _T("Remove"));
+        menu.Bind(wxEVT_MENU, &MainUI::OnContextRemoveFont, this);
+        PopupMenu(&menu);
+    }
+
+    void MainUI::OnContextRemoveTexture(wxCommandEvent& e)
+    {
+        int row = m_TextureList->GetSelectedRow();
+
+        if (row == wxNOT_FOUND)
+        {
+            return;
+        }
+
+        wxVariant variant;
+        m_TextureList->GetValue(variant, row, 0);
+
+        if (!m_ContentFile->RemoveTexture(variant.GetString().ToStdString()))
+        {
+            wxMessageBox("Couldn't delete that item.");
+            return;
+        }
+
+        m_TextureList->DeleteItem(row);
+        m_Notebook->Refresh();
+    }
+
+    void MainUI::OnContextRemoveFont(wxCommandEvent& e)
+    {
+        int row = m_FontList->GetSelectedRow();
+
+        if (row == wxNOT_FOUND)
+        {
+            return;
+        }
+
+        wxVariant variant;
+        m_FontList->GetValue(variant, row, 0);
+
+        if (!m_ContentFile->RemoveFont(variant.GetString().ToStdString()))
+        {
+            wxMessageBox("Couldn't delete that item.");
+            return;
+        }
+
+        m_FontList->DeleteItem(row);
+        m_Notebook->Refresh();
     }
 
     DrawPanel::DrawPanel(wxWindow* w, std::shared_ptr<AtlasPage> p) :

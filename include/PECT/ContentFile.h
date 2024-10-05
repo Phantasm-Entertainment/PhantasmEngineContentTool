@@ -49,13 +49,16 @@ namespace PECT
         static std::shared_ptr<ContentFile> LoadFromFile(const std::string&);
 
         inline std::vector<std::shared_ptr<AtlasPage>>& GetPages() { return m_Pages; }
+        inline std::vector<AtlasFontEntry>& GetFontEntries() { return m_FontEntries; }
         inline std::uint16_t GetPageSize() const { return m_PageSize; }
 
         ContentFile();
         ~ContentFile();
 
         void AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>);
+        bool RemoveTexture(const std::string&);
         void AddFont(const std::string&, std::shared_ptr<FontData>);
+        bool RemoveFont(const std::string&);
         void SaveToFile(const std::string&);
     };
 }
