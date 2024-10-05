@@ -4,10 +4,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(ZLIB 1.3.1 REQUIRED)
-find_package(PNG 1.6.42 REQUIRED)
-find_package(wxWidgets 3.2.4 REQUIRED COMPONENTS core base)
+find_package(PNG 1.6.44 REQUIRED)
+find_package(wxWidgets 3.2.6 REQUIRED COMPONENTS core base)
 include(${wxWidgets_USE_FILE})
-find_package(Freetype 2.13.2 REQUIRED)
+find_package(Freetype 2.13.3 REQUIRED)
 
 set(PECT_SRC_FILES
     src/App.cpp
