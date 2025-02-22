@@ -3,8 +3,6 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
-#include <iostream>
-
 namespace PECT
 {
     const char ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
@@ -235,10 +233,6 @@ namespace PECT
         {
             throw std::string("of is not open");
         }
-        else
-        {
-            std::cout << "of is open\n";
-        }
 
         of.write(m_FileHeader, 8);
         WriteUInt32(m_FileVersion, reinterpret_cast<unsigned char*>(buf));
@@ -306,8 +300,6 @@ namespace PECT
 
                         WriteUInt32(static_cast<std::uint32_t>(compressSize), reinterpret_cast<unsigned char*>(buf));
                         of.write(buf, 4);
-                        std::cout << "Wrote compressSize = " << std::to_string(compressSize) << '\n';
-                        std::cout << std::to_string(buf[0]) << ' ' << std::to_string(buf[1]) << ' ' << std::to_string(buf[2]) << ' ' << std::to_string(buf[3]) << '\n';
                         of.write(compressOutput.get(), compressSize);
                     }
                     else
@@ -369,10 +361,6 @@ namespace PECT
                 }
             }
         }
-
-        of.flush();
-        of.close();
-        std::cout << "finished saving\n";
     }
 
     static void PECT_CloseFile(std::FILE* fp) noexcept(true)
@@ -461,9 +449,7 @@ namespace PECT
                 {
                     if (std::fread(&buffer, 1, 4, fp.get()) != 4) { throw std::string("not a valid content file 10"); }
 
-                    std::cout << std::to_string(buffer[0]) << ' ' << std::to_string(buffer[1]) << ' ' << std::to_string(buffer[2]) << ' ' << std::to_string(buffer[3]) << '\n';
                     std::uint32_t compressLen = ReadUInt32(reinterpret_cast<unsigned char*>(buffer));
-                    std::cout << "Reading compressLen = " << std::to_string(compressLen) << '\n';
                     std::unique_ptr<char[]> compressedBuff = std::make_unique<char[]>(compressLen);
 
                     if (std::fread(compressedBuff.get(), 1, compressLen, fp.get()) != compressLen) { throw std::string("not a valid content file 11"); }
