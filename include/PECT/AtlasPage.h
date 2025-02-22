@@ -23,8 +23,8 @@ namespace PECT
         inline std::uint16_t GetWidth() const noexcept { return m_Width; }
         inline std::uint16_t GetHeight() const noexcept { return m_Height; }
 
-        bool AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>);
-        bool AddFontTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>, std::uint32_t, std::uint8_t, std::int32_t, std::int32_t, std::int32_t);
+        bool AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>);
+        bool AddFontTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>, std::uint32_t, std::uint8_t, std::int32_t, std::int32_t, std::int32_t);
 
         //temp
         inline std::vector<std::shared_ptr<PageTexture>>& GetPageTextures() { return m_Textures; }

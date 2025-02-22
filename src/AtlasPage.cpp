@@ -49,7 +49,7 @@ namespace PECT
     }
 
     // return true if found spot
-    bool AtlasPage::AddTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<std::uint8_t[]> d)
+    bool AtlasPage::AddTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d)
     {
         std::shared_ptr<PageTexture> pt;
 
@@ -90,7 +90,7 @@ namespace PECT
         return true;
     }
 
-    bool AtlasPage::AddFontTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<std::uint8_t[]> d, std::uint32_t fontIndex, std::uint8_t code, std::int32_t bearingX, std::int32_t bearingY, std::int32_t advance)
+    bool AtlasPage::AddFontTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d, std::uint32_t fontIndex, std::uint8_t code, std::int32_t bearingX, std::int32_t bearingY, std::int32_t advance)
     {
         if (m_Textures.empty())
         {

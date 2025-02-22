@@ -27,14 +27,14 @@ namespace PECT
     class ContentFile
     {
     private:
-        static std::uint8_t m_FileHeader[8];
+        static const char m_FileHeader[8];
         static std::uint32_t m_FileVersion;
 
-        static std::uint32_t ReadUInt32(std::uint8_t*);
-        static std::uint16_t ReadUInt16(std::uint8_t*);
+        static std::uint32_t ReadUInt32(unsigned char*);
+        static std::uint16_t ReadUInt16(unsigned char*);
 
-        static void WriteUInt32(std::uint32_t, std::uint8_t*);
-        static void WriteUInt16(std::uint16_t, std::uint8_t*);
+        static void WriteUInt32(std::uint32_t, unsigned char*);
+        static void WriteUInt16(std::uint16_t, unsigned char*);
 
         // the good stuff
 
@@ -55,7 +55,7 @@ namespace PECT
         ContentFile();
         ~ContentFile();
 
-        void AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>);
+        void AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>);
         bool RemoveTexture(const std::string&);
         void AddFont(const std::string&, std::shared_ptr<FontData>);
         bool RemoveFont(const std::string&);

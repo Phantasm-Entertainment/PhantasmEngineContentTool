@@ -20,7 +20,7 @@ namespace PECT
     private:
         inline ContentLoader() { }
     public:
-        static std::shared_ptr<std::uint8_t[]> LoadPNG(const std::string&, std::size_t*, std::size_t*);
+        static std::shared_ptr<char[]> LoadPNG(const std::string&, std::size_t*, std::size_t*);
         static std::shared_ptr<FontData> LoadFont(const std::string&, std::uint16_t);
     };
 }

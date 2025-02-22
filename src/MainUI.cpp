@@ -198,7 +198,7 @@ namespace PECT
         // IF PNG
 
         std::size_t w, h;
-        std::shared_ptr<std::uint8_t[]> data = ContentLoader::LoadPNG(path, &w, &h);
+        std::shared_ptr<char[]> data = ContentLoader::LoadPNG(path, &w, &h);
 
         if (w > 2048 || h > 2048)
         {

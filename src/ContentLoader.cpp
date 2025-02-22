@@ -4,7 +4,7 @@
 
 namespace PECT
 {
-    std::shared_ptr<std::uint8_t[]> ContentLoader::LoadPNG(const std::string& path, std::size_t* w, std::size_t* h)
+    std::shared_ptr<char[]> ContentLoader::LoadPNG(const std::string& path, std::size_t* w, std::size_t* h)
     {
         png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
@@ -91,7 +91,7 @@ namespace PECT
         std::fclose(fp);
         fp = NULL;
         std::uint32_t pos = 0;
-        std::shared_ptr<std::uint8_t[]> data = std::make_shared<std::uint8_t[]>(width * height * 4);
+        std::shared_ptr<char[]> data = std::make_shared<char[]>(width * height * 4);
 
         for (std::int32_t y = 0; y < height; ++y)
         {
@@ -165,9 +165,9 @@ namespace PECT
 
                 if (fontChar.Width != 0 && fontChar.Height != 0)
                 {
-                    fontChar.Data = std::make_shared<std::uint8_t[]>(fontChar.Width * fontChar.Height * 4);
+                    fontChar.Data = std::make_shared<char[]>(fontChar.Width * fontChar.Height * 4);
                     std::size_t pos = 0;
-                    std::uint8_t* dataPtr = fontChar.Data.get();
+                    char* dataPtr = fontChar.Data.get();
 
                     for (std::int64_t y = 0; y < fontChar.Height; ++y)
                     {

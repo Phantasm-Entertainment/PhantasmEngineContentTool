@@ -3,22 +3,24 @@
 #include <brotli/encode.h>
 #include <brotli/decode.h>
 
+#include <iostream>
+
 namespace PECT
 {
-    std::uint8_t ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
+    const char ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
     std::uint32_t ContentFile::m_FileVersion = 1;
 
-    std::uint32_t ContentFile::ReadUInt32(std::uint8_t* buffer)
+    std::uint32_t ContentFile::ReadUInt32(unsigned char* buffer)
     {
         return std::uint32_t((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | (buffer[3]));
     }
 
-    std::uint16_t ContentFile::ReadUInt16(std::uint8_t* buffer)
+    std::uint16_t ContentFile::ReadUInt16(unsigned char* buffer)
     {
         return std::uint16_t((buffer[0] << 8) | (buffer[1]));
     }
 
-    void ContentFile::WriteUInt32(std::uint32_t val, std::uint8_t* buf)
+    void ContentFile::WriteUInt32(std::uint32_t val, unsigned char* buf)
     {
         buf[0] = (val >> 24) & 0xFF;
         buf[1] = (val >> 16) & 0xFF;
@@ -26,7 +28,7 @@ namespace PECT
         buf[3] = val & 0xFF;
     }
 
-    void ContentFile::WriteUInt16(std::uint16_t val, std::uint8_t* buf)
+    void ContentFile::WriteUInt16(std::uint16_t val, unsigned char* buf)
     {
         buf[0] = (val >> 8) & 0xFF;
         buf[1] = val & 0xFF;
@@ -64,7 +66,7 @@ namespace PECT
         }
     }
 
-    void ContentFile::AddTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<std::uint8_t[]> d)
+    void ContentFile::AddTexture(const std::string& name, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d)
     {
         CheckName(name);
 
@@ -221,12 +223,27 @@ namespace PECT
 
     void ContentFile::SaveToFile(const std::string& path)
     {
-        std::uint8_t buf[255];
-        std::basic_ofstream<std::uint8_t, std::char_traits<std::uint8_t>> of(path, std::ios::binary);
+        char buf[255];
+        std::ofstream of(path, std::ios::binary);
+
+        if (of.bad())
+        {
+            throw std::string("of is bad");
+        }
+
+        if (!of.is_open())
+        {
+            throw std::string("of is not open");
+        }
+        else
+        {
+            std::cout << "of is open\n";
+        }
+
         of.write(m_FileHeader, 8);
-        WriteUInt32(m_FileVersion, buf);
+        WriteUInt32(m_FileVersion, reinterpret_cast<unsigned char*>(buf));
         of.write(buf, 4);
-        WriteUInt16(m_Pages.size(), buf);
+        WriteUInt16(m_Pages.size(), reinterpret_cast<unsigned char*>(buf));
         of.write(buf, 2);
         std::uint32_t textureCount = 0;
 
@@ -235,20 +252,20 @@ namespace PECT
             textureCount += page->GetPageTextures().size();
         }
 
-        WriteUInt32(textureCount, buf);
+        WriteUInt32(textureCount, reinterpret_cast<unsigned char*>(buf));
         of.write(buf, 4);
 
-        WriteUInt32(m_FontEntries.size(), buf);
+        WriteUInt32(m_FontEntries.size(), reinterpret_cast<unsigned char*>(buf));
         of.write(buf, 4);
 
         for (auto& fontEntry : m_FontEntries)
         {
-            WriteUInt16(fontEntry.Ascender, buf);
-            WriteUInt16(fontEntry.Descender, buf + 2);
-            WriteUInt16(fontEntry.LineSpacing, buf + 4);
+            WriteUInt16(fontEntry.Ascender, reinterpret_cast<unsigned char*>(buf));
+            WriteUInt16(fontEntry.Descender, reinterpret_cast<unsigned char*>(buf + 2));
+            WriteUInt16(fontEntry.LineSpacing, reinterpret_cast<unsigned char*>(buf + 4));
             buf[6] = fontEntry.Name.size();
             of.write(buf, 7);
-            of.write(reinterpret_cast<const unsigned char*>(fontEntry.Name.c_str()), fontEntry.Name.size());
+            of.write(fontEntry.Name.c_str(), fontEntry.Name.size());
         }
         
         for (std::uint16_t pageNum = 0; pageNum < m_Pages.size(); ++pageNum)
@@ -260,16 +277,16 @@ namespace PECT
                     buf[0] = 0; // this is a texture
                     of.write(buf, 1);
 
-                    WriteUInt16(pageNum, buf);
-                    WriteUInt16(texture->X, buf + 2);
-                    WriteUInt16(texture->Y, buf + 4);
-                    WriteUInt16(texture->Width, buf + 6);
-                    WriteUInt16(texture->Height, buf + 8);
+                    WriteUInt16(pageNum, reinterpret_cast<unsigned char*>(buf));
+                    WriteUInt16(texture->X, reinterpret_cast<unsigned char*>(buf + 2));
+                    WriteUInt16(texture->Y, reinterpret_cast<unsigned char*>(buf + 4));
+                    WriteUInt16(texture->Width, reinterpret_cast<unsigned char*>(buf + 6));
+                    WriteUInt16(texture->Height, reinterpret_cast<unsigned char*>(buf + 8));
                     of.write(buf, 10);
 
                     buf[0] = static_cast<std::uint8_t>(texture->Name.length());
                     of.write(buf, 1);
-                    of.write(reinterpret_cast<const std::uint8_t*>(texture->Name.c_str()), texture->Name.length());
+                    of.write(texture->Name.c_str(), texture->Name.length());
                     
                     std::size_t dataSize = texture->Width * texture->Height * 4;
 
@@ -278,17 +295,19 @@ namespace PECT
                         std::uint8_t compressQuality = BROTLI_MAX_QUALITY / 2;
                         buf[0] = compressQuality;
                         of.write(buf, 1);
-                        std::unique_ptr<std::uint8_t[]> compressOutput = std::make_unique<std::uint8_t[]>(dataSize);
+                        std::unique_ptr<char[]> compressOutput = std::make_unique<char[]>(dataSize);
                         std::size_t compressSize = dataSize;
 
                         if (BrotliEncoderCompress(compressQuality, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE,
-                        dataSize, texture->Data.get(), &compressSize, compressOutput.get()) == BROTLI_FALSE)
+                        dataSize, reinterpret_cast<uint8_t*>(texture->Data.get()), &compressSize, reinterpret_cast<uint8_t*>(compressOutput.get())) == BROTLI_FALSE)
                         {
                             throw std::string("compress failure");
                         }
 
-                        WriteUInt32(static_cast<std::uint32_t>(compressSize), buf);
+                        WriteUInt32(static_cast<std::uint32_t>(compressSize), reinterpret_cast<unsigned char*>(buf));
                         of.write(buf, 4);
+                        std::cout << "Wrote compressSize = " << std::to_string(compressSize) << '\n';
+                        std::cout << std::to_string(buf[0]) << ' ' << std::to_string(buf[1]) << ' ' << std::to_string(buf[2]) << ' ' << std::to_string(buf[3]) << '\n';
                         of.write(compressOutput.get(), compressSize);
                     }
                     else
@@ -303,20 +322,20 @@ namespace PECT
                     buf[0] = 1; // this is a font character
                     of.write(buf, 1);
 
-                    WriteUInt16(pageNum, buf);
-                    WriteUInt16(texture->X, buf + 2);
-                    WriteUInt16(texture->Y, buf + 4);
-                    WriteUInt16(texture->Width, buf + 6);
-                    WriteUInt16(texture->Height, buf + 8);
+                    WriteUInt16(pageNum, reinterpret_cast<unsigned char*>(buf));
+                    WriteUInt16(texture->X, reinterpret_cast<unsigned char*>(buf + 2));
+                    WriteUInt16(texture->Y, reinterpret_cast<unsigned char*>(buf + 4));
+                    WriteUInt16(texture->Width, reinterpret_cast<unsigned char*>(buf + 6));
+                    WriteUInt16(texture->Height, reinterpret_cast<unsigned char*>(buf + 8));
                     buf[10] = texture->Code;
-                    WriteUInt32(texture->BearingX, buf + 11);
-                    WriteUInt32(texture->BearingY, buf + 15);
-                    WriteUInt32(texture->Advance, buf + 19);
+                    WriteUInt32(texture->BearingX, reinterpret_cast<unsigned char*>(buf + 11));
+                    WriteUInt32(texture->BearingY, reinterpret_cast<unsigned char*>(buf + 15));
+                    WriteUInt32(texture->Advance, reinterpret_cast<unsigned char*>(buf + 19));
                     of.write(buf, 23);
 
                     buf[0] = static_cast<std::uint8_t>(texture->Name.length());
-                    of.write(buf, 1);
-                    of.write(reinterpret_cast<const std::uint8_t*>(texture->Name.c_str()), texture->Name.length());
+                    of.write(reinterpret_cast<const char*>(buf), 1);
+                    of.write(texture->Name.c_str(), texture->Name.length());
 
                     if (texture->Width != 0 && texture->Height != 0)
                     {
@@ -327,16 +346,16 @@ namespace PECT
                             std::uint8_t compressQuality = BROTLI_MAX_QUALITY / 2;
                             buf[0] = compressQuality;
                             of.write(buf, 1);
-                            std::unique_ptr<std::uint8_t[]> compressOutput = std::make_unique<std::uint8_t[]>(dataSize);
+                            std::unique_ptr<char[]> compressOutput = std::make_unique<char[]>(dataSize);
                             std::size_t compressSize = dataSize;
 
                             if (BrotliEncoderCompress(compressQuality, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE,
-                            dataSize, texture->Data.get(), &compressSize, compressOutput.get()) == BROTLI_FALSE)
+                            dataSize, reinterpret_cast<uint8_t*>(texture->Data.get()), &compressSize, reinterpret_cast<uint8_t*>(compressOutput.get())) == BROTLI_FALSE)
                             {
                                 throw std::string("compress failure");
                             }
 
-                            WriteUInt32(static_cast<std::uint32_t>(compressSize), buf);
+                            WriteUInt32(static_cast<std::uint32_t>(compressSize), reinterpret_cast<unsigned char*>(buf));
                             of.write(buf, 4);
                             of.write(compressOutput.get(), compressSize);
                         }
@@ -350,24 +369,33 @@ namespace PECT
                 }
             }
         }
+
+        of.flush();
+        of.close();
+        std::cout << "finished saving\n";
+    }
+
+    static void PECT_CloseFile(std::FILE* fp) noexcept(true)
+    {
+        std::fclose(fp);
     }
 
     std::shared_ptr<ContentFile> ContentFile::LoadFromFile(const std::string& path)
     {
-        std::unique_ptr<std::FILE, decltype(&std::fclose)> fp(std::fopen(path.c_str(), "rb"), &std::fclose);
+        std::unique_ptr<std::FILE, decltype(&PECT_CloseFile)> fp(std::fopen(path.c_str(), "rb"), &PECT_CloseFile);
 
         if (!fp) { throw std::string("could not open file"); }
 
-        std::uint8_t buffer[255];
+        char buffer[255];
 
         if (std::fread(&buffer, 1, 22, fp.get()) != 22) { throw std::string("not a valid content file 1"); }
 
         if (std::memcmp(&buffer, &m_FileHeader, 8) != 0) { throw std::string("not a valid content file 2"); }
 
-        std::uint32_t version = ReadUInt32(&buffer[8]);
-        std::uint16_t atlasPages = ReadUInt16(&buffer[12]);
-        std::uint32_t textureListSize = ReadUInt32(&buffer[14]);
-        std::uint32_t fontListSize = ReadUInt32(&buffer[18]);
+        std::uint32_t version = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[8]));
+        std::uint16_t atlasPages = ReadUInt16(reinterpret_cast<unsigned char*>(&buffer[12]));
+        std::uint32_t textureListSize = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[14]));
+        std::uint32_t fontListSize = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[18]));
 
         std::shared_ptr<ContentFile> contentFile = std::make_shared<ContentFile>();
 
@@ -383,14 +411,14 @@ namespace PECT
         {
             if (std::fread(buffer, 1, 7, fp.get()) != 7) { throw std::string("not a valid content file 3"); }
 
-            ascender = ReadUInt16(buffer);
-            descender = ReadUInt16(buffer + 2);
-            lineSpacing = ReadUInt16(buffer + 4);
+            ascender = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
+            descender = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
+            lineSpacing = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
             nameLen = buffer[6];
 
             if (std::fread(buffer, 1, nameLen, fp.get()) != nameLen) { throw std::string("not a valid content file 4"); }
 
-            contentFile->m_FontEntries.emplace_back(std::string(reinterpret_cast<const char*>(&buffer), nameLen), ascender, descender, lineSpacing);
+            contentFile->m_FontEntries.emplace_back(std::string(buffer, nameLen), ascender, descender, lineSpacing);
         }
 
         std::uint16_t pageNum, x, y, w, h;
@@ -407,23 +435,23 @@ namespace PECT
             {
                 if (std::fread(&buffer, 1, 11, fp.get()) != 11) { throw std::string("not a valid content file 6"); }
 
-                pageNum = ReadUInt16(buffer);
-                x = ReadUInt16(buffer + 2);
-                y = ReadUInt16(buffer + 4);
-                w = ReadUInt16(buffer + 6);
-                h = ReadUInt16(buffer + 8);
+                pageNum = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
+                x = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
+                y = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
+                w = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 6));
+                h = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 8));
                 imageDataSize = w * h * 4;
                 nameLen = buffer[10];
 
                 if (std::fread(&buffer, 1, nameLen, fp.get()) != nameLen) { throw std::string("not a valid content file 7"); }
 
-                std::string name(reinterpret_cast<const char*>(&buffer), nameLen);
+                std::string name(buffer, nameLen);
 
                 if (std::fread(&buffer, 1, 1, fp.get()) != 1) { throw std::string("not a valid content file 8"); }
 
                 compressType = buffer[0];
 
-                std::shared_ptr<std::uint8_t[]> imageData = std::make_shared<std::uint8_t[]>(imageDataSize);
+                std::shared_ptr<char[]> imageData = std::make_shared<char[]>(imageDataSize);
 
                 if (compressType == 0)
                 {
@@ -433,12 +461,14 @@ namespace PECT
                 {
                     if (std::fread(&buffer, 1, 4, fp.get()) != 4) { throw std::string("not a valid content file 10"); }
 
-                    std::uint32_t compressLen = ReadUInt32(buffer);
-                    std::unique_ptr<std::uint8_t[]> compressedBuff = std::make_unique<std::uint8_t[]>(compressLen);
+                    std::cout << std::to_string(buffer[0]) << ' ' << std::to_string(buffer[1]) << ' ' << std::to_string(buffer[2]) << ' ' << std::to_string(buffer[3]) << '\n';
+                    std::uint32_t compressLen = ReadUInt32(reinterpret_cast<unsigned char*>(buffer));
+                    std::cout << "Reading compressLen = " << std::to_string(compressLen) << '\n';
+                    std::unique_ptr<char[]> compressedBuff = std::make_unique<char[]>(compressLen);
 
                     if (std::fread(compressedBuff.get(), 1, compressLen, fp.get()) != compressLen) { throw std::string("not a valid content file 11"); }
 
-                    if (BrotliDecoderDecompress(compressLen, compressedBuff.get(), &imageDataSize, imageData.get()) != BROTLI_DECODER_RESULT_SUCCESS)
+                    if (BrotliDecoderDecompress(compressLen, reinterpret_cast<uint8_t*>(compressedBuff.get()), &imageDataSize, reinterpret_cast<uint8_t*>(imageData.get())) != BROTLI_DECODER_RESULT_SUCCESS)
                     {
                         throw std::string("decompress error");
                     }
@@ -450,22 +480,22 @@ namespace PECT
             {
                 if (std::fread(&buffer, 1, 24, fp.get()) != 24) { throw std::string("not a valid content file 12"); }
 
-                pageNum = ReadUInt16(buffer);
-                x = ReadUInt16(buffer + 2);
-                y = ReadUInt16(buffer + 4);
-                w = ReadUInt16(buffer + 6);
-                h = ReadUInt16(buffer + 8);
+                pageNum = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
+                x = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
+                y = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
+                w = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 6));
+                h = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 8));
                 imageDataSize = w * h * 4;
                 code = buffer[10];
-                bearingX = ReadUInt32(buffer + 11);
-                bearingY = ReadUInt32(buffer + 15);
-                advance = ReadUInt32(buffer + 19);
+                bearingX = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 11));
+                bearingY = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 15));
+                advance = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 19));
                 nameLen = buffer[23];
 
                 if (std::fread(&buffer, 1, nameLen, fp.get()) != nameLen) { throw std::string("not a valid content file 13"); }
 
                 std::string name(reinterpret_cast<const char*>(&buffer), nameLen);
-                std::shared_ptr<std::uint8_t[]> imageData;
+                std::shared_ptr<char[]> imageData;
 
                 if (w != 0 && h != 0)
                 {
@@ -473,7 +503,7 @@ namespace PECT
 
                     compressType = buffer[0];
 
-                    imageData = std::make_shared<std::uint8_t[]>(imageDataSize);
+                    imageData = std::make_shared<char[]>(imageDataSize);
 
                     if (compressType == 0)
                     {
@@ -483,12 +513,12 @@ namespace PECT
                     {
                         if (std::fread(&buffer, 1, 4, fp.get()) != 4) { throw std::string("not a valid content file 16"); }
 
-                        std::uint32_t compressLen = ReadUInt32(buffer);
+                        std::uint32_t compressLen = ReadUInt32(reinterpret_cast<unsigned char*>(buffer));
                         std::unique_ptr<std::uint8_t[]> compressedBuff = std::make_unique<std::uint8_t[]>(compressLen);
 
                         if (std::fread(compressedBuff.get(), 1, compressLen, fp.get()) != compressLen) { throw std::string("not a valid content file 17"); }
 
-                        if (BrotliDecoderDecompress(compressLen, compressedBuff.get(), &imageDataSize, imageData.get()) != BROTLI_DECODER_RESULT_SUCCESS)
+                        if (BrotliDecoderDecompress(compressLen, compressedBuff.get(), &imageDataSize, reinterpret_cast<uint8_t*>(imageData.get())) != BROTLI_DECODER_RESULT_SUCCESS)
                         {
                             throw std::string("decompress error");
                         }

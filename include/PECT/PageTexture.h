@@ -21,13 +21,13 @@ namespace PECT
         std::int32_t BearingX, BearingY, Advance;
 
         std::uint16_t X, Y, Width, Height;
-        std::shared_ptr<std::uint8_t[]> Data;
+        std::shared_ptr<char[]> Data;
         wxBitmap Bitmap;
 
         // for a texture
-        PageTexture(const std::string&, std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>);
+        PageTexture(const std::string&, std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>);
         // for a font
-        PageTexture(const std::string&, std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t, std::shared_ptr<std::uint8_t[]>, std::uint8_t, std::int32_t, std::int32_t, std::int32_t);
+        PageTexture(const std::string&, std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>, std::uint8_t, std::int32_t, std::int32_t, std::int32_t);
         ~PageTexture();
     };
 }

@@ -2,7 +2,7 @@
 
 namespace PECT
 {
-    PageTexture::PageTexture(const std::string& n, std::uint16_t x, std::uint16_t y, std::uint16_t w, std::uint16_t h, std::shared_ptr<std::uint8_t[]> d)
+    PageTexture::PageTexture(const std::string& n, std::uint16_t x, std::uint16_t y, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d)
         : Name(n), IsFont(false), X(x), Y(y), Width(w), Height(h), Data(d)
     {
         if (!Bitmap.Create(Width, Height, 32))
@@ -38,7 +38,7 @@ namespace PECT
         }
     }
 
-    PageTexture::PageTexture(const std::string& n, std::uint16_t x, std::uint16_t y, std::uint16_t w, std::uint16_t h, std::shared_ptr<std::uint8_t[]> d, std::uint8_t c, std::int32_t bx, std::int32_t by, std::int32_t a)
+    PageTexture::PageTexture(const std::string& n, std::uint16_t x, std::uint16_t y, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d, std::uint8_t c, std::int32_t bx, std::int32_t by, std::int32_t a)
         : Name(n), IsFont(true), X(x), Y(y), Width(w), Height(h), Data(d), Code(c), BearingX(bx), BearingY(by), Advance(a)
     {
         if (Width == 0 || Height == 0)
