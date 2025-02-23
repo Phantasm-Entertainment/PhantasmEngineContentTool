@@ -30,11 +30,11 @@ namespace PECT
         static const char m_FileHeader[8];
         static std::uint32_t m_FileVersion;
 
-        static std::uint32_t ReadUInt32(unsigned char*);
-        static std::uint16_t ReadUInt16(unsigned char*);
+        static std::uint32_t ReadUInt32(char*);
+        static std::uint16_t ReadUInt16(char*);
 
-        static void WriteUInt32(std::uint32_t, unsigned char*);
-        static void WriteUInt16(std::uint16_t, unsigned char*);
+        static void WriteUInt32(std::uint32_t, char*);
+        static void WriteUInt16(std::uint16_t, char*);
 
         // the good stuff
 

@@ -8,26 +8,30 @@ namespace PECT
     const char ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
     std::uint32_t ContentFile::m_FileVersion = 1;
 
-    std::uint32_t ContentFile::ReadUInt32(unsigned char* buffer)
+    std::uint32_t ContentFile::ReadUInt32(char* b)
     {
+        unsigned char* buffer = reinterpret_cast<unsigned char*>(b);
         return std::uint32_t((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | (buffer[3]));
     }
 
-    std::uint16_t ContentFile::ReadUInt16(unsigned char* buffer)
+    std::uint16_t ContentFile::ReadUInt16(char* b)
     {
+        unsigned char* buffer = reinterpret_cast<unsigned char*>(b);
         return std::uint16_t((buffer[0] << 8) | (buffer[1]));
     }
 
-    void ContentFile::WriteUInt32(std::uint32_t val, unsigned char* buf)
+    void ContentFile::WriteUInt32(std::uint32_t val, char* b)
     {
+        unsigned char* buf = reinterpret_cast<unsigned char*>(b);
         buf[0] = (val >> 24) & 0xFF;
         buf[1] = (val >> 16) & 0xFF;
         buf[2] = (val >> 8) & 0xFF;
         buf[3] = val & 0xFF;
     }
 
-    void ContentFile::WriteUInt16(std::uint16_t val, unsigned char* buf)
+    void ContentFile::WriteUInt16(std::uint16_t val, char* b)
     {
+        unsigned char* buf = reinterpret_cast<unsigned char*>(b);
         buf[0] = (val >> 8) & 0xFF;
         buf[1] = val & 0xFF;
     }
@@ -235,9 +239,9 @@ namespace PECT
         }
 
         of.write(m_FileHeader, 8);
-        WriteUInt32(m_FileVersion, reinterpret_cast<unsigned char*>(buf));
+        WriteUInt32(m_FileVersion, buf);
         of.write(buf, 4);
-        WriteUInt16(m_Pages.size(), reinterpret_cast<unsigned char*>(buf));
+        WriteUInt16(m_Pages.size(), buf);
         of.write(buf, 2);
         std::uint32_t textureCount = 0;
 
@@ -246,17 +250,17 @@ namespace PECT
             textureCount += page->GetPageTextures().size();
         }
 
-        WriteUInt32(textureCount, reinterpret_cast<unsigned char*>(buf));
+        WriteUInt32(textureCount, buf);
         of.write(buf, 4);
 
-        WriteUInt32(m_FontEntries.size(), reinterpret_cast<unsigned char*>(buf));
+        WriteUInt32(m_FontEntries.size(), buf);
         of.write(buf, 4);
 
         for (auto& fontEntry : m_FontEntries)
         {
-            WriteUInt16(fontEntry.Ascender, reinterpret_cast<unsigned char*>(buf));
-            WriteUInt16(fontEntry.Descender, reinterpret_cast<unsigned char*>(buf + 2));
-            WriteUInt16(fontEntry.LineSpacing, reinterpret_cast<unsigned char*>(buf + 4));
+            WriteUInt16(fontEntry.Ascender, buf);
+            WriteUInt16(fontEntry.Descender, buf + 2);
+            WriteUInt16(fontEntry.LineSpacing, buf + 4);
             buf[6] = fontEntry.Name.size();
             of.write(buf, 7);
             of.write(fontEntry.Name.c_str(), fontEntry.Name.size());
@@ -271,11 +275,11 @@ namespace PECT
                     buf[0] = 0; // this is a texture
                     of.write(buf, 1);
 
-                    WriteUInt16(pageNum, reinterpret_cast<unsigned char*>(buf));
-                    WriteUInt16(texture->X, reinterpret_cast<unsigned char*>(buf + 2));
-                    WriteUInt16(texture->Y, reinterpret_cast<unsigned char*>(buf + 4));
-                    WriteUInt16(texture->Width, reinterpret_cast<unsigned char*>(buf + 6));
-                    WriteUInt16(texture->Height, reinterpret_cast<unsigned char*>(buf + 8));
+                    WriteUInt16(pageNum, buf);
+                    WriteUInt16(texture->X, buf + 2);
+                    WriteUInt16(texture->Y, buf + 4);
+                    WriteUInt16(texture->Width, buf + 6);
+                    WriteUInt16(texture->Height, buf + 8);
                     of.write(buf, 10);
 
                     buf[0] = static_cast<std::uint8_t>(texture->Name.length());
@@ -298,7 +302,7 @@ namespace PECT
                             throw std::string("compress failure");
                         }
 
-                        WriteUInt32(static_cast<std::uint32_t>(compressSize), reinterpret_cast<unsigned char*>(buf));
+                        WriteUInt32(static_cast<std::uint32_t>(compressSize), buf);
                         of.write(buf, 4);
                         of.write(compressOutput.get(), compressSize);
                     }
@@ -314,15 +318,15 @@ namespace PECT
                     buf[0] = 1; // this is a font character
                     of.write(buf, 1);
 
-                    WriteUInt16(pageNum, reinterpret_cast<unsigned char*>(buf));
-                    WriteUInt16(texture->X, reinterpret_cast<unsigned char*>(buf + 2));
-                    WriteUInt16(texture->Y, reinterpret_cast<unsigned char*>(buf + 4));
-                    WriteUInt16(texture->Width, reinterpret_cast<unsigned char*>(buf + 6));
-                    WriteUInt16(texture->Height, reinterpret_cast<unsigned char*>(buf + 8));
+                    WriteUInt16(pageNum, buf);
+                    WriteUInt16(texture->X, buf + 2);
+                    WriteUInt16(texture->Y, buf + 4);
+                    WriteUInt16(texture->Width, buf + 6);
+                    WriteUInt16(texture->Height, buf + 8);
                     buf[10] = texture->Code;
-                    WriteUInt32(texture->BearingX, reinterpret_cast<unsigned char*>(buf + 11));
-                    WriteUInt32(texture->BearingY, reinterpret_cast<unsigned char*>(buf + 15));
-                    WriteUInt32(texture->Advance, reinterpret_cast<unsigned char*>(buf + 19));
+                    WriteUInt32(texture->BearingX, buf + 11);
+                    WriteUInt32(texture->BearingY, buf + 15);
+                    WriteUInt32(texture->Advance, buf + 19);
                     of.write(buf, 23);
 
                     buf[0] = static_cast<std::uint8_t>(texture->Name.length());
@@ -347,7 +351,7 @@ namespace PECT
                                 throw std::string("compress failure");
                             }
 
-                            WriteUInt32(static_cast<std::uint32_t>(compressSize), reinterpret_cast<unsigned char*>(buf));
+                            WriteUInt32(static_cast<std::uint32_t>(compressSize), buf);
                             of.write(buf, 4);
                             of.write(compressOutput.get(), compressSize);
                         }
@@ -380,10 +384,10 @@ namespace PECT
 
         if (std::memcmp(&buffer, &m_FileHeader, 8) != 0) { throw std::string("not a valid content file 2"); }
 
-        std::uint32_t version = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[8]));
-        std::uint16_t atlasPages = ReadUInt16(reinterpret_cast<unsigned char*>(&buffer[12]));
-        std::uint32_t textureListSize = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[14]));
-        std::uint32_t fontListSize = ReadUInt32(reinterpret_cast<unsigned char*>(&buffer[18]));
+        std::uint32_t version = ReadUInt32(&buffer[8]);
+        std::uint16_t atlasPages = ReadUInt16(&buffer[12]);
+        std::uint32_t textureListSize = ReadUInt32(&buffer[14]);
+        std::uint32_t fontListSize = ReadUInt32(&buffer[18]);
 
         std::shared_ptr<ContentFile> contentFile = std::make_shared<ContentFile>();
 
@@ -399,9 +403,9 @@ namespace PECT
         {
             if (std::fread(buffer, 1, 7, fp.get()) != 7) { throw std::string("not a valid content file 3"); }
 
-            ascender = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
-            descender = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
-            lineSpacing = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
+            ascender = ReadUInt16(buffer);
+            descender = ReadUInt16(buffer + 2);
+            lineSpacing = ReadUInt16(buffer + 4);
             nameLen = buffer[6];
 
             if (std::fread(buffer, 1, nameLen, fp.get()) != nameLen) { throw std::string("not a valid content file 4"); }
@@ -423,11 +427,11 @@ namespace PECT
             {
                 if (std::fread(&buffer, 1, 11, fp.get()) != 11) { throw std::string("not a valid content file 6"); }
 
-                pageNum = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
-                x = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
-                y = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
-                w = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 6));
-                h = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 8));
+                pageNum = ReadUInt16(buffer);
+                x = ReadUInt16(buffer + 2);
+                y = ReadUInt16(buffer + 4);
+                w = ReadUInt16(buffer + 6);
+                h = ReadUInt16(buffer + 8);
                 imageDataSize = w * h * 4;
                 nameLen = buffer[10];
 
@@ -449,7 +453,7 @@ namespace PECT
                 {
                     if (std::fread(&buffer, 1, 4, fp.get()) != 4) { throw std::string("not a valid content file 10"); }
 
-                    std::uint32_t compressLen = ReadUInt32(reinterpret_cast<unsigned char*>(buffer));
+                    std::uint32_t compressLen = ReadUInt32(buffer);
                     std::unique_ptr<char[]> compressedBuff = std::make_unique<char[]>(compressLen);
 
                     if (std::fread(compressedBuff.get(), 1, compressLen, fp.get()) != compressLen) { throw std::string("not a valid content file 11"); }
@@ -466,16 +470,16 @@ namespace PECT
             {
                 if (std::fread(&buffer, 1, 24, fp.get()) != 24) { throw std::string("not a valid content file 12"); }
 
-                pageNum = ReadUInt16(reinterpret_cast<unsigned char*>(buffer));
-                x = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 2));
-                y = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 4));
-                w = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 6));
-                h = ReadUInt16(reinterpret_cast<unsigned char*>(buffer + 8));
+                pageNum = ReadUInt16(buffer);
+                x = ReadUInt16(buffer + 2);
+                y = ReadUInt16(buffer + 4);
+                w = ReadUInt16(buffer + 6);
+                h = ReadUInt16(buffer + 8);
                 imageDataSize = w * h * 4;
                 code = buffer[10];
-                bearingX = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 11));
-                bearingY = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 15));
-                advance = ReadUInt32(reinterpret_cast<unsigned char*>(buffer + 19));
+                bearingX = ReadUInt32(buffer + 11);
+                bearingY = ReadUInt32(buffer + 15);
+                advance = ReadUInt32(buffer + 19);
                 nameLen = buffer[23];
 
                 if (std::fread(&buffer, 1, nameLen, fp.get()) != nameLen) { throw std::string("not a valid content file 13"); }
@@ -499,7 +503,7 @@ namespace PECT
                     {
                         if (std::fread(&buffer, 1, 4, fp.get()) != 4) { throw std::string("not a valid content file 16"); }
 
-                        std::uint32_t compressLen = ReadUInt32(reinterpret_cast<unsigned char*>(buffer));
+                        std::uint32_t compressLen = ReadUInt32(buffer);
                         std::unique_ptr<std::uint8_t[]> compressedBuff = std::make_unique<std::uint8_t[]>(compressLen);
 
                         if (std::fread(compressedBuff.get(), 1, compressLen, fp.get()) != compressLen) { throw std::string("not a valid content file 17"); }
