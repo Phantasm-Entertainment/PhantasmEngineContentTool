@@ -10,32 +10,12 @@ namespace PECT
             return false;
         }
 
-        //std::uint16_t right = x + w == m_Width - gap ? m_Width - gap : x + w + gap;
-        //std::uint16_t bottom = y + h == m_Height - gap ? m_Height - gap : y + w + gap;
-
-        // std::uint16_t left = x == 0 ? 0 : x - gap;
-        // std::uint16_t right = x + gap + w == m_Width ? m_Width : x + gap + w;
-        // std::uint16_t top = y == 0 ? 0 : y - gap;
-        // std::uint16_t bottom = y + gap + h == m_Height ? m_Height : y + gap + h;
-
         std::uint16_t x = startX == 0 ? 0 : startX - gap;
         std::uint16_t y = startY == 0 ? 0 : startY - gap;
-        std::uint16_t w = startW, h = startH;
+        std::uint16_t w = startW + gap * 2, h = startH + gap * 2;
 
         for (const std::shared_ptr<PageTexture>& pageTexture : m_Textures)
         {
-            // old intersects
-            // if (left < pageTexture->X + pageTexture->Width &&
-            //     pageTexture->X < right &&
-            //     top < pageTexture->Y + pageTexture->Height &&
-            //     pageTexture->Y < bottom)
-
-            // contains (wrong)
-            // if ((((pageTexture->X <= x) &&
-            //     ((x + w) <= (pageTexture->X + pageTexture->Width))) &&
-            //     (pageTexture->Y <= y)) &&
-            //     ((y + h) <= (pageTexture->Y + pageTexture->Height)))
-
             if (x < (pageTexture->X + pageTexture->Width) &&
                 pageTexture->X < (x + w) &&
                 y < (pageTexture->Y + pageTexture->Height) &&
