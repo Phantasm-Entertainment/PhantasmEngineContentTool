@@ -8,6 +8,9 @@
 #include <wx/notebook.h>
 #include <wx/sizer.h>
 
+#include "PECT/ContentFile.h"
+#include "PECT/ContentLoader.h"
+
 #define ID_FILE_NEW           100
 #define ID_FILE_OPEN          101
 #define ID_FILE_SAVE          102
@@ -19,9 +22,6 @@
 #define ID_FONTLIST           106
 #define ID_TEXTURELIST_REMOVE 107
 #define ID_FONTLIST_REMOVE    108
-
-#include "PECT/ContentFile.h"
-#include "PECT/ContentLoader.h"
 
 namespace PECT
 {

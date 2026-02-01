@@ -6,8 +6,8 @@
 namespace PECT
 {
     const unsigned char ContentFile::m_FileHeader[8] = { 80, 69, 67, 70, 2, 3, 1, 7 };
-    const std::uint32_t ContentFile::m_FileVersion = 1;
-    const std::uint16_t ContentFile::m_MaxPageSize = 4096;
+    const FileVersion ContentFile::m_FileVersion(1, 0, 0);
+    const AtlasInt ContentFile::m_MaxPageSize = 4096;
 
     std::expected<AtlasPos, std::string> ContentFile::AddTexture(const std::string& name, ImageData& data)
     {
@@ -56,7 +56,7 @@ namespace PECT
         return false;
     }
 
-    SaveResult ContentFile::Save(std::string path)
+    SaveResult ContentFile::Save(std::string path) noexcept
     {
         if (path == "")
         {
@@ -82,9 +82,19 @@ namespace PECT
         }
 
         unsigned char buffer[32];
+
+        // write header
         of.write(m_FileHeader, 8);
-        WriteUInt32(m_FileVersion, buffer);
-        of.write(buffer, 4);
+
+        // write file version
+        WriteUInt32(m_FileVersion.GetMajor(), buffer);
+        WriteUInt32(m_FileVersion.GetMinor(), buffer + 2);
+        WriteUInt32(m_FileVersion.GetPatch(), buffer + 4);
+        of.write(buffer, 6);
+
+        
+
+        return {};
     }
 
     // void ContentFile::AddFont(const std::string& name, const FontData& data)

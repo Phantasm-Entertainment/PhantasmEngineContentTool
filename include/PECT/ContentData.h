@@ -20,7 +20,7 @@ namespace PECT
         std::unique_ptr<unsigned char[]> m_Data;
         wxBitmap m_Bitmap;
     public:
-        ImageData(std::size_t, std::size_t, std::unique_ptr<unsigned char[]>) noexcept;
+        ImageData(std::size_t, std::size_t, std::unique_ptr<unsigned char[]>);
 
         std::size_t GetWidth() const noexcept { return m_Width; }
         std::size_t GetHeight() const noexcept { return m_Height; }
@@ -54,7 +54,8 @@ namespace PECT
             }
         }
 
-        bool HasTexture() const noexcept { return m_Width != 0 && m_Height != 0; }
+        unsigned char* GetTextureData() const noexcept { return m_Data.get(); }
+        bool HasTexture() const noexcept { return m_Data ? true : false; }
     };
 
     class FontData
@@ -65,6 +66,12 @@ namespace PECT
         std::vector<FontCharData> m_Chars;
     public:
         FontData(std::uint16_t a, std::uint16_t d, std::uint16_t l, std::vector<FontCharData> c) : m_Ascender(a), m_Descender(d), m_LineSpacing(l), m_Chars(std::move(c)) { }
+
+        std::uint16_t GetAscender() const noexcept { return m_Ascender; }
+        std::uint16_t GetDescender() const noexcept { return m_Descender; }
+        std::uint16_t GetLineSpacing() const noexcept { return m_LineSpacing; }
+
+        const std::vector<FontCharData>& GetChars() const noexcept { return m_Chars; }
     };
 }
 

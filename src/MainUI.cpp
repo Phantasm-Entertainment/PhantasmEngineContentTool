@@ -5,7 +5,7 @@ namespace PECT
     MainUI::MainUI() : wxFrame(NULL, wxID_ANY, "Phantasm Engine Content Tool", wxDefaultPosition, wxSize(1280, 720))
     {
         CreateStatusBar();
-        SetStatusText("Ready.");
+        SetStatusText("Empty file");
 
         wxMenuBar* menuBar = new wxMenuBar;
 

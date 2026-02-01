@@ -8,12 +8,16 @@
 #include <unordered_map>
 #include <optional>
 #include <iostream>
+#include <optional>
+#include <string>
 
 #include "PECT/ContentData.h"
 
 namespace PECT
 {
     using AtlasInt = std::int16_t;
+    using ContentIndex = std::int64_t;
+
     constexpr AtlasInt g_TextureGap = 1;
 
     class AtlasPos
@@ -56,45 +60,21 @@ namespace PECT
         }
     };
 
-    class AtlasFontChar
-    {
-    private:
-        
-    };
-
-    class AtlasFontEntry
-    {
-    private:
-        
-    };
-
     class AtlasPage
     {
         friend class ContentFile;
     private:
         AtlasInt m_Width, m_Height;
-        std::unordered_map<std::string, AtlasTextureEntry> m_TextureEntries;
-        //std::unordered_map<std::string, AtlasFontEntry> m_FontEntries;
-
-        //bool Collides(std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t, std::uint16_t);
-
-        
+        std::unordered_map<ContentIndex, AtlasTextureEntry> m_TextureEntries;
     public:
-        //static AtlasInt m_TextureGap; // 1
-
         AtlasPage(AtlasInt w, AtlasInt h) : m_Width(w), m_Height(h) { }
 
         AtlasInt GetWidth() const noexcept { return m_Width; }
         AtlasInt GetHeight() const noexcept { return m_Height; }
 
-        bool HasName(const std::string& name) const noexcept
+        bool HasIndex(ContentIndex index) const noexcept
         {
-            for (const auto& [n,e] : m_TextureEntries)
-            {
-                if (name == n) { return true; }
-            }
-
-            return false;
+            return m_TextureEntries.count(index) == 1;
         }
 
         std::optional<AtlasPos> AddTexture(const std::string&, ImageData&) noexcept;

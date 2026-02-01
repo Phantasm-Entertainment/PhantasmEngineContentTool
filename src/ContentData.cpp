@@ -2,7 +2,7 @@
 
 namespace PECT
 {
-    ImageData::ImageData(std::size_t w, std::size_t h, std::unique_ptr<unsigned char[]> d) noexcept
+    ImageData::ImageData(std::size_t w, std::size_t h, std::unique_ptr<unsigned char[]> d)
         : m_Width(w), m_Height(h), m_Data(std::move(d))
     {
         if (!m_Bitmap.Create(m_Width, m_Height, 32))

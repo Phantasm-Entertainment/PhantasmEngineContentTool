@@ -14,7 +14,6 @@ set(PECT_SRC_FILES
     src/ContentFile.cpp
     src/ContentLoader.cpp
     src/MainUI.cpp
-    src/PageTexture.cpp
 )
 
 if(NOT DEFINED BROTLI_INCLUDE_DIRS OR NOT DEFINED BROTLI_LIBRARIES)

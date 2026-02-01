@@ -1,7 +1,7 @@
 Header (8 bytes)
-File version (4 bytes)
+File version (6 bytes) (uint16, uint16, uint16)
 
-Atlas pages (2 bytes)
+Atlas pages (2 bytes) (uint16_t)
 data for each atlas page:
 Atlas width (2 bytes)
 Atlas height (2 bytes)
