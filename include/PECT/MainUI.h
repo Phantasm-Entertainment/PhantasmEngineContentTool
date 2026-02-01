@@ -28,12 +28,13 @@ namespace PECT
     class DrawPanel : public wxPanel
     {
     private:
-        std::shared_ptr<AtlasPage> m_Page;
+        ContentFile& m_ContentFile;
+        AtlasInt m_AtlasPageIndex;
     public:
-        inline DrawPanel(wxWindow*, std::shared_ptr<AtlasPage>);
+        DrawPanel(wxWindow*, ContentFile&, AtlasInt) noexcept;
 
-        void OnPaint(wxPaintEvent&);
-        void OnKeyDown(wxKeyEvent&);
+        void OnPaint(wxPaintEvent&) noexcept;
+        void OnKeyDown(wxKeyEvent&) noexcept;
     };
 
     class MainUI : public wxFrame
@@ -42,7 +43,7 @@ namespace PECT
         wxDataViewListCtrl* m_TextureList;
         wxDataViewListCtrl* m_FontList;
         wxNotebook* m_Notebook;
-        std::shared_ptr<ContentFile> m_ContentFile;
+        ContentFile m_ContentFile;
     public:
         MainUI();
     private:

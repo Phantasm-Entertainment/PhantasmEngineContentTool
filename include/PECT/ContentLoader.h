@@ -1,27 +1,25 @@
 #ifndef PECT_CONTENTLOADER_H_
 #define PECT_CONTENTLOADER_H_
 
-#include <cstdint>
+#include <expected>
 #include <string>
-#include <memory>
-#include <vector>
 
 #include <zlib.h>
 #include <png.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "PECT/FontData.h"
+#include "PECT/ContentData.h"
 
 namespace PECT
 {
     class ContentLoader
     {
     private:
-        inline ContentLoader() { }
+        ContentLoader() { }
     public:
-        static std::shared_ptr<char[]> LoadPNG(const std::string&, std::size_t*, std::size_t*);
-        static std::shared_ptr<FontData> LoadFont(const std::string&, std::uint16_t);
+        static std::expected<ImageData, std::string> LoadPNG(const std::string&);
+        static std::expected<FontData, std::string> LoadFont(const std::string&, std::uint16_t);
     };
 }
 

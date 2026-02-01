@@ -2,6 +2,7 @@
 #define PECT_FONTCHARDATA_H_
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -12,10 +13,22 @@ namespace PECT
         std::uint8_t Code;
         std::int32_t BearingX, BearingY, Advance;
         std::uint16_t Width, Height;
-        std::shared_ptr<char[]> Data;
+        std::unique_ptr<unsigned char[]> Data;
 
-        inline FontCharData(std::uint8_t c, std::int32_t bx, std::int32_t by, std::int32_t a, std::uint16_t w, std::uint16_t h, std::shared_ptr<char[]> d) : Code(c), BearingX(bx), BearingY(by), Advance(a), Width(w), Height(h), Data(d) { }
+        //inline FontCharData(std::uint8_t c, std::int32_t bx, std::int32_t by, std::int32_t a, std::uint16_t w, std::uint16_t h, std::unique_ptr<unsigned char[]> d) : Code(c), BearingX(bx), BearingY(by), Advance(a), Width(w), Height(h), Data(std::move(d)) { }
         inline FontCharData(std::uint8_t c, std::int32_t bx, std::int32_t by, std::int32_t a, std::uint16_t w, std::uint16_t h) : Code(c), BearingX(bx), BearingY(by), Advance(a), Width(w), Height(h) { }
+
+        inline FontCharData(FontCharData&& other) noexcept
+        : Code(other.Code), BearingX(other.BearingX), BearingY(other.BearingY), Advance(other.Advance),
+        Width(other.Width), Height(other.Height), Data(std::move(other.Data)) { }
+
+        inline FontCharData(const FontCharData& other) noexcept
+        : Code(other.Code), BearingX(other.BearingX), BearingY(other.BearingY), Advance(other.Advance),
+        Width(other.Width), Height(other.Height)
+        {
+            Data = std::make_unique<unsigned char[]>(Width * Height * 4);
+            std::memcpy(Data.get(), other.Data.get(), Width * Height * 4);
+        }
 
         inline bool HasTexture() const noexcept { return Width != 0 && Height != 0; }
     };

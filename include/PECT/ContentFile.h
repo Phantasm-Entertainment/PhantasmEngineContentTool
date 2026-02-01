@@ -6,77 +6,104 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <stdexcept>
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <optional>
+#include <expected>
+#include <variant>
 
 #include "PECT/AtlasPage.h"
-#include "PECT/FontData.h"
+//#include "PECT/FontData.h"
 
 namespace PECT
 {
-    struct AtlasFontEntry
-    {
-        std::string Name;
-        std::uint16_t Ascender, Descender, LineSpacing;
+    // struct AtlasFontEntry
+    // {
+    //     std::string Name;
+    //     std::uint16_t Ascender, Descender, LineSpacing;
 
-        inline AtlasFontEntry(const std::string& n, std::uint16_t a, std::uint16_t d, std::uint16_t l)
-        : Name(n), Ascender(a), Descender(d), LineSpacing(l) { }
+    //     inline AtlasFontEntry(const std::string& n, std::uint16_t a, std::uint16_t d, std::uint16_t l)
+    //     : Name(n), Ascender(a), Descender(d), LineSpacing(l) { }
+    // };
+
+    class SaveResult
+    {
+    private:
+        std::variant<std::monostate, bool, std::string> m_Result;
+    public:
+        SaveResult() noexcept { }
+        SaveResult(bool b) noexcept : m_Result(b) { }
+        SaveResult(const std::string& msg) noexcept : m_Result(msg) { }
+        
+        bool IsSuccess() const noexcept { return m_Result.index() == 0; }
+        bool NeedsPath() const noexcept { return m_Result.index() == 1; }
+        const std::string& GetError() const noexcept { return std::get<2>(m_Result); }
     };
 
     class ContentFile
     {
     private:
-        static const char m_FileHeader[8];
-        static std::uint32_t m_FileVersion;
+        static const unsigned char m_FileHeader[8]; // { 80, 69, 67, 70, 2, 3, 1, 7 }
+        static const std::uint32_t m_FileVersion; // 1
+        static const std::uint16_t m_MaxPageSize; // 4096
 
-        static std::uint32_t ReadUInt32(char*);
-        static std::uint16_t ReadUInt16(char*);
+        // integer to bytes conversions
+        void ReadUInt32(std::uint32_t* val, unsigned char* buffer)
+        {
+            *val = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | (buffer[3]);
+        }
 
-        static void WriteUInt32(std::uint32_t, char*);
-        static void WriteUInt16(std::uint16_t, char*);
+        void ReadUInt16(std::uint32_t* val, unsigned char* buffer)
+        {
+            *val = (buffer[0] << 8) | (buffer[1]);
+        }
 
-        // the good stuff
+        void WriteUInt32(std::uint32_t val, unsigned char* buf)
+        {
+            buf[0] = (val >> 24) & 0xFF;
+            buf[1] = (val >> 16) & 0xFF;
+            buf[2] = (val >> 8) & 0xFF;
+            buf[3] = val & 0xFF;
+        }
 
-        std::uint16_t m_PageSize;
-        std::vector<std::shared_ptr<AtlasPage>> m_Pages;
-        std::vector<AtlasFontEntry> m_FontEntries;
+        void WriteUInt16(std::uint16_t val, unsigned char* buf)
+        {
+            buf[0] = (val >> 8) & 0xFF;
+            buf[1] = val & 0xFF;
+        }
 
-        void CheckName(const std::string&);
+        // data
+        std::optional<std::string> m_SavePath;
+        std::vector<AtlasPage> m_Pages;
+        //std::vector<AtlasFontEntry> m_FontEntries;
 
-        void AddFontTexture(const std::string&, FontCharData&, std::uint32_t);
+        //void AddFontTexture(const std::string&, FontCharData&, std::uint32_t);
     public:
-        static std::shared_ptr<ContentFile> LoadFromFile(const std::string&);
+        ~ContentFile() { Save(); }
 
-        inline std::vector<std::shared_ptr<AtlasPage>>& GetPages() { return m_Pages; }
-        inline std::vector<AtlasFontEntry>& GetFontEntries() { return m_FontEntries; }
-        inline std::uint16_t GetPageSize() const { return m_PageSize; }
+        bool IsNameTaken(const std::string& name) const noexcept
+        {
+            for (const auto& page : m_Pages)
+            {
+                if (page.HasName(name)) { return true; }
+            }
 
-        ContentFile();
-        ~ContentFile();
+            return false;
+        }
 
-        void AddTexture(const std::string&, std::uint16_t, std::uint16_t, std::shared_ptr<char[]>);
+        std::vector<AtlasPage>& GetPages() noexcept { return m_Pages; }
+        //inline std::vector<AtlasFontEntry>& GetFontEntries() noexcept { return m_FontEntries; }
+
+        std::expected<AtlasPos, std::string> AddTexture(const std::string&, ImageData&);
         bool RemoveTexture(const std::string&);
-        void AddFont(const std::string&, std::shared_ptr<FontData>);
-        bool RemoveFont(const std::string&);
-        void SaveToFile(const std::string&);
+        //void AddFont(const std::string&, const FontData&);
+        //bool RemoveFont(const std::string&);
+
+        SaveResult Save(std::string path = "");
+        std::expected<void, std::string> Load(const std::string&);
     };
 }
 
 #endif
-
-/*
-
-FILE FORMAT
-
-Header (8 bytes)
-Version (4 bytes)
-Pages (2 bytes)
-
-FOREACH Page
-    Texture list size (4 bytes)
-    
-END
-
-
-*/

@@ -54,49 +54,66 @@ namespace PECT
         SetSizer(sizer);
         CenterOnScreen();
         Maximize();
+
+        wxScrolledWindow* scrollWin = new wxScrolledWindow(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE);
+        scrollWin->SetSizer(new wxBoxSizer(wxVERTICAL));
+        scrollWin->SetScrollRate(5, 5);
+        scrollWin->Scroll(wxPoint(0, 0));
+        DrawPanel* panel = new DrawPanel(scrollWin, m_ContentFile, 0);
+        scrollWin->GetSizer()->Add(panel, 1, wxEXPAND | wxALL, 3);
+        m_Notebook->AddPage(scrollWin, "Page 1");
+
+        wxScrolledWindow* scrollWin2 = new wxScrolledWindow(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE);
+        scrollWin2->SetSizer(new wxBoxSizer(wxVERTICAL));
+        scrollWin2->SetScrollRate(5, 5);
+        scrollWin2->Scroll(wxPoint(0, 0));
+        DrawPanel* panel2 = new DrawPanel(scrollWin2, m_ContentFile, 1);
+        scrollWin2->GetSizer()->Add(panel2, 1, wxEXPAND | wxALL, 3);
+        m_Notebook->AddPage(scrollWin2, "Page 2");
     }
 
     void MainUI::UpdateAtlasPages()
     {
-        auto pages = m_ContentFile->GetPages();
+        // auto& pages = m_ContentFile.GetPages();
 
-        for (std::size_t i = 0; i < pages.size(); ++i)
-        {
-            if (m_Notebook->GetPageCount() == i)
-            {
-                wxScrolledWindow* scrollWin = new wxScrolledWindow(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE);
-                scrollWin->SetSizer(new wxBoxSizer(wxVERTICAL));
-                scrollWin->SetScrollRate(5, 5);
-                scrollWin->Scroll(wxPoint(0, 0));
-                DrawPanel* panel = new DrawPanel(scrollWin, pages[i]);
-                scrollWin->GetSizer()->Add(panel, 1, wxEXPAND | wxALL, 3);
-                m_Notebook->AddPage(scrollWin, "Page " + std::to_string(i + 1));
-            }
-        }
+        // for (std::size_t i = 0; i < pages.size(); ++i)
+        // {
+        //     if (m_Notebook->GetPageCount() == i)
+        //     {
+        //         wxScrolledWindow* scrollWin = new wxScrolledWindow(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFULL_REPAINT_ON_RESIZE);
+        //         scrollWin->SetSizer(new wxBoxSizer(wxVERTICAL));
+        //         scrollWin->SetScrollRate(5, 5);
+        //         scrollWin->Scroll(wxPoint(0, 0));
+        //         DrawPanel* panel = new DrawPanel(scrollWin, pages[i]);
+        //         scrollWin->GetSizer()->Add(panel, 1, wxEXPAND | wxALL, 3);
+        //         m_Notebook->AddPage(scrollWin, "Page " + std::to_string(i + 1));
+        //     }
+        // }
 
+        // m_Notebook->Refresh();
         m_Notebook->Refresh();
     }
 
     void MainUI::OnMenuNew(wxCommandEvent&)
     {
-        if (m_ContentFile)
-        {
-            // TODO: save it
-        }
+        // if (m_ContentFile)
+        // {
+        //     // TODO: save it
+        // }
         
-        m_Notebook->DeleteAllPages();
-        m_ContentFile = std::make_shared<ContentFile>();
-        UpdateAtlasPages();
-        SetStatusText("Created new content file.");
+        // m_Notebook->DeleteAllPages();
+        // m_ContentFile = std::make_unique<ContentFile>();
+        // UpdateAtlasPages();
+        // SetStatusText("Created new content file.");
     }
 
     void MainUI::OnMenuOpen(wxCommandEvent&)
     {
-        if (m_ContentFile)
-        {
-            wxMessageBox("TODO: OnMenuOpen save before open");
-            return;
-        }
+        // if (m_ContentFile)
+        // {
+        //     wxMessageBox("TODO: OnMenuOpen save before open");
+        //     return;
+        // }
 
         wxFileDialog dialog(this, _T("Open content file"), wxEmptyString, wxEmptyString, _T("Phantasm Engine Content File (*.pecf)|*.pecf"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -105,80 +122,80 @@ namespace PECT
             return;
         }
 
-        std::shared_ptr<ContentFile> contentFile;
+        // std::unique_ptr<ContentFile> contentFile;
 
-        try
-        {
-            contentFile = ContentFile::LoadFromFile(dialog.GetPath().ToStdString());
-        }
-        catch (const std::string& e)
-        {
-            wxMessageBox("Error: " + e, "PECT", 5L, this);
-            return;
-        }
+        // try
+        // {
+        //     contentFile = ContentFile::LoadFromFile(dialog.GetPath().ToStdString());
+        // }
+        // catch (const std::string& e)
+        // {
+        //     wxMessageBox("Error: " + e, "PECT", 5L, this);
+        //     return;
+        // }
         
-        m_Notebook->DeleteAllPages();
-        m_ContentFile = contentFile;
-        m_TextureList->DeleteAllItems();
-        m_FontList->DeleteAllItems();
+        // m_Notebook->DeleteAllPages();
+        // m_ContentFile = contentFile;
+        // m_TextureList->DeleteAllItems();
+        // m_FontList->DeleteAllItems();
 
-        for (const auto& pages : m_ContentFile->GetPages())
-        {
-            for (const auto& texture : pages->GetPageTextures())
-            {
-                if (!texture->IsFont)
-                {
-                    wxVector<wxVariant> list;
-                    list.push_back(texture->Name);
-                    m_TextureList->AppendItem(list);
-                }
-            }
-        }
+        // for (const auto& pages : m_ContentFile->GetPages())
+        // {
+        //     for (const auto& texture : pages->GetPageTextures())
+        //     {
+        //         if (!texture->IsFont)
+        //         {
+        //             wxVector<wxVariant> list;
+        //             list.push_back(texture->Name);
+        //             m_TextureList->AppendItem(list);
+        //         }
+        //     }
+        // }
 
-        for (const auto& font : m_ContentFile->GetFontEntries())
-        {
-            wxVector<wxVariant> list;
-            list.push_back(font.Name);
-            m_FontList->AppendItem(list);
-        }
+        // for (const auto& font : m_ContentFile->GetFontEntries())
+        // {
+        //     wxVector<wxVariant> list;
+        //     list.push_back(font.Name);
+        //     m_FontList->AppendItem(list);
+        // }
 
-        UpdateAtlasPages();
+        // UpdateAtlasPages();
     }
 
     void MainUI::OnMenuSave(wxCommandEvent&)
     {
-        if (!m_ContentFile)
-        {
-            return;
-        }
+        // if (!m_ContentFile)
+        // {
+        //     return;
+        // }
 
-        wxFileDialog dialog(this, _T("Save content file"), wxEmptyString, wxEmptyString, _T("Phantasm Engine Content File (*.pecf)|*.pecf"), wxFD_SAVE);
+        // wxFileDialog dialog(this, _T("Save content file"), wxEmptyString, wxEmptyString, _T("Phantasm Engine Content File (*.pecf)|*.pecf"), wxFD_SAVE);
 
-        if (dialog.ShowModal() == wxID_CANCEL)
-        {
-            return;
-        }
+        // if (dialog.ShowModal() == wxID_CANCEL)
+        // {
+        //     return;
+        // }
 
-        std::string path = dialog.GetPath().ToStdString();
+        // std::string path = dialog.GetPath().ToStdString();
 
-        try
-        {
-            m_ContentFile->SaveToFile(path);
-            SetStatusText("Saved content file to '" + path + "'");
-        }
-        catch(const std::string& e)
-        {
-            wxMessageBox("Error: " + e, "PECT", 5L, this);
-        }
+        // try
+        // {
+        //     m_ContentFile->SaveToFile(path);
+        //     SetStatusText("Saved content file to '" + path + "'");
+        // }
+        // catch(const std::string& e)
+        // {
+        //     wxMessageBox("Error: " + e, "PECT", 5L, this);
+        // }
     }
 
     void MainUI::OnAtlasAddImage(wxCommandEvent&)
     {
-        if (!m_ContentFile)
-        {
-            wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
-            return;
-        }
+        // if (!m_ContentFile)
+        // {
+        //     wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
+        //     return;
+        // }
 
         wxFileDialog dialog(this, _T("Open image file"), wxEmptyString, wxEmptyString, _T("Image file (*.png)|*.png"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
@@ -197,16 +214,30 @@ namespace PECT
 
         // IF PNG
 
-        std::size_t w, h;
-        std::shared_ptr<char[]> data = ContentLoader::LoadPNG(path, &w, &h);
-
-        if (w > 2048 || h > 2048)
+        if (m_ContentFile.IsNameTaken(textDialog.GetValue().ToStdString()))
         {
-            wxMessageBox(_T("Image too large."), _T("Error"), 5L, this);
+            wxMessageBox(_T("That name is already in use for a different resource."), _T("PECT"), 5L, this);
             return;
         }
 
-        m_ContentFile->AddTexture(textDialog.GetValue().ToStdString(), static_cast<std::uint16_t>(w), static_cast<std::uint16_t>(h), data);
+        auto imageData = ContentLoader::LoadPNG(path);
+
+        if (!imageData)
+        {
+            wxMessageBox(_T("Error when loading image: " + imageData.error()), _T("PECT"), 5L, this);
+            return;
+        }
+
+        std::cout << "THING: " << textDialog.GetValue().ToStdString() << '\n';
+        auto atlasPos = m_ContentFile.AddTexture(textDialog.GetValue().ToStdString(), *imageData);
+
+        if (!atlasPos)
+        {
+            wxMessageBox(_T("Error when adding image: " + atlasPos.error()), _T("PECT"), 5L, this);
+            return;
+        }
+
+        std::cout << std::to_string((*atlasPos).GetX()) << " " << std::to_string((*atlasPos).GetY()) << '\n';
         wxVector<wxVariant> list;
         list.push_back(textDialog.GetValue().ToStdString());
         m_TextureList->AppendItem(list);
@@ -215,60 +246,60 @@ namespace PECT
 
     void MainUI::OnAtlasAddFont(wxCommandEvent&)
     {
-        if (!m_ContentFile)
-        {
-            wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
-            return;
-        }
+        // if (!m_ContentFile)
+        // {
+        //     wxMessageBox(_T("Please create a content file first."), _T("PECT"), 5L, this);
+        //     return;
+        // }
 
-        wxFileDialog dialog(this, _T("Open font file"), wxEmptyString, wxEmptyString, _T("Font file (*.ttf)|*.ttf"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        // wxFileDialog dialog(this, _T("Open font file"), wxEmptyString, wxEmptyString, _T("Font file (*.ttf)|*.ttf"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-        if (dialog.ShowModal() == wxID_CANCEL)
-        {
-            return;
-        }
+        // if (dialog.ShowModal() == wxID_CANCEL)
+        // {
+        //     return;
+        // }
 
-        wxTextEntryDialog textDialog(this, _T("Enter texture name:"), _T("test"));
+        // wxTextEntryDialog textDialog(this, _T("Enter texture name:"), _T("test"));
 
-        if (textDialog.ShowModal() == wxID_CANCEL)
-        {
-            return;
-        }
+        // if (textDialog.ShowModal() == wxID_CANCEL)
+        // {
+        //     return;
+        // }
 
-        wxTextEntryDialog sizeDialog(this, _T("Enter font size:"), _T("test"));
+        // wxTextEntryDialog sizeDialog(this, _T("Enter font size:"), _T("test"));
 
-        if (sizeDialog.ShowModal() == wxID_CANCEL)
-        {
-            return;
-        }
+        // if (sizeDialog.ShowModal() == wxID_CANCEL)
+        // {
+        //     return;
+        // }
 
-        std::string sizeText = sizeDialog.GetValue().ToStdString();
-        std::uint16_t size;
-        auto [ptr, ec] = std::from_chars(sizeText.data(), sizeText.data() + sizeText.size(), size);
+        // std::string sizeText = sizeDialog.GetValue().ToStdString();
+        // std::uint16_t size;
+        // auto [ptr, ec] = std::from_chars(sizeText.data(), sizeText.data() + sizeText.size(), size);
 
-        if (ec != std::errc())
-        {
-            wxMessageBox(_T("Invalid font size."), _T("Error"), 5L, this);
-            return;
-        }
+        // if (ec != std::errc())
+        // {
+        //     wxMessageBox(_T("Invalid font size."), _T("Error"), 5L, this);
+        //     return;
+        // }
 
-        std::shared_ptr<FontData> fontData;
+        // std::shared_ptr<FontData> fontData;
 
-        try
-        {
-            fontData = ContentLoader::LoadFont(dialog.GetPath().ToStdString(), size);
-        }
-        catch(const std::string& e)
-        {
-            wxMessageBox("Error when loading font: " + e, _T("Error"), 5L, this);
-            return;
-        }
+        // try
+        // {
+        //     fontData = ContentLoader::LoadFont(dialog.GetPath().ToStdString(), size);
+        // }
+        // catch(const std::string& e)
+        // {
+        //     wxMessageBox("Error when loading font: " + e, _T("Error"), 5L, this);
+        //     return;
+        // }
         
-        m_ContentFile->AddFont(textDialog.GetValue().ToStdString(), fontData);
-        wxVector<wxVariant> list;
-        list.push_back(textDialog.GetValue().ToStdString());
-        m_FontList->AppendItem(list);
-        UpdateAtlasPages();
+        // m_ContentFile->AddFont(textDialog.GetValue().ToStdString(), fontData);
+        // wxVector<wxVariant> list;
+        // list.push_back(textDialog.GetValue().ToStdString());
+        // m_FontList->AppendItem(list);
+        // UpdateAtlasPages();
     }
 
     void MainUI::OnTextureListContext(wxDataViewEvent& e)
@@ -289,70 +320,101 @@ namespace PECT
 
     void MainUI::OnContextRemoveTexture(wxCommandEvent& e)
     {
-        int row = m_TextureList->GetSelectedRow();
+        // int row = m_TextureList->GetSelectedRow();
 
-        if (row == wxNOT_FOUND)
-        {
-            return;
-        }
+        // if (row == wxNOT_FOUND)
+        // {
+        //     return;
+        // }
 
-        wxVariant variant;
-        m_TextureList->GetValue(variant, row, 0);
+        // wxVariant variant;
+        // m_TextureList->GetValue(variant, row, 0);
 
-        if (!m_ContentFile->RemoveTexture(variant.GetString().ToStdString()))
-        {
-            wxMessageBox("Couldn't delete that item.");
-            return;
-        }
+        // if (!m_ContentFile->RemoveTexture(variant.GetString().ToStdString()))
+        // {
+        //     wxMessageBox("Couldn't delete that item.");
+        //     return;
+        // }
 
-        m_TextureList->DeleteItem(row);
-        m_Notebook->Refresh();
+        // m_TextureList->DeleteItem(row);
+        // m_Notebook->Refresh();
     }
 
     void MainUI::OnContextRemoveFont(wxCommandEvent& e)
     {
-        int row = m_FontList->GetSelectedRow();
+        // int row = m_FontList->GetSelectedRow();
 
-        if (row == wxNOT_FOUND)
-        {
-            return;
-        }
+        // if (row == wxNOT_FOUND)
+        // {
+        //     return;
+        // }
 
-        wxVariant variant;
-        m_FontList->GetValue(variant, row, 0);
+        // wxVariant variant;
+        // m_FontList->GetValue(variant, row, 0);
 
-        if (!m_ContentFile->RemoveFont(variant.GetString().ToStdString()))
-        {
-            wxMessageBox("Couldn't delete that item.");
-            return;
-        }
+        // if (!m_ContentFile->RemoveFont(variant.GetString().ToStdString()))
+        // {
+        //     wxMessageBox("Couldn't delete that item.");
+        //     return;
+        // }
 
-        m_FontList->DeleteItem(row);
-        m_Notebook->Refresh();
+        // m_FontList->DeleteItem(row);
+        // m_Notebook->Refresh();
     }
 
-    DrawPanel::DrawPanel(wxWindow* w, std::shared_ptr<AtlasPage> p) :
-    wxPanel(w, wxID_ANY, wxDefaultPosition, wxSize(4096, 4096)), m_Page(p)
+    // DrawPanel::DrawPanel(wxWindow* w, std::shared_ptr<AtlasPage> p) :
+    // wxPanel(w, wxID_ANY, wxDefaultPosition, wxSize(4096, 4096)), m_Page(p)
+    // {
+    //     Bind(wxEVT_PAINT, &DrawPanel::OnPaint, this);
+    //     SetMinSize(wxSize(4096, 4096));
+    //     SetDoubleBuffered(true);
+    // }
+
+    DrawPanel::DrawPanel(wxWindow* w, ContentFile& cf, AtlasInt index) noexcept :
+    wxPanel(w, wxID_ANY, wxDefaultPosition, wxSize(4096, 4096)), m_ContentFile(cf), m_AtlasPageIndex(index)
     {
         Bind(wxEVT_PAINT, &DrawPanel::OnPaint, this);
         SetMinSize(wxSize(4096, 4096));
         SetDoubleBuffered(true);
     }
 
-    void DrawPanel::OnPaint(wxPaintEvent&)
+    void DrawPanel::OnPaint(wxPaintEvent&) noexcept
     {
         wxPaintDC dc(this);
         dc.SetBrush(wxBrush(wxColour(255, 0, 255)));
-        dc.DrawRectangle(0, 0, m_Page->GetWidth(), m_Page->GetHeight());
+        dc.DrawRectangle(0, 0, 4096, 4096);
+        auto& pages = m_ContentFile.GetPages();
 
-        auto& textures = m_Page->GetPageTextures();
-
-        for (auto& texture : textures)
+        if (pages.size() >= m_AtlasPageIndex + 1)
         {
-            if (texture->Width != 0 && texture->Height != 0)
+            auto& page = m_ContentFile.GetPages()[m_AtlasPageIndex];
+
+            for (auto& texture : page.GetTextures())
             {
-                dc.DrawBitmap(texture->Bitmap, texture->X, texture->Y);
+                //std::cout << "drawing " << texture.first << '\n';
+                dc.DrawBitmap(texture.second.GetImageData().GetBitmap(), texture.second.GetPos().GetX(), texture.second.GetPos().GetY());
             }
         }
+        // auto& page = m_ContentFile.GetPages()[m_AtlasPageIndex];
+
+        // for (auto& texture : page.GetTextures())
+        // {
+        //     dc.DrawBitmap(texture.second.GetImageData().GetBitmap(), texture.second.GetPos().GetX(), texture.second.GetPos().GetY());
+        // }
+
+        //for (auto& texture : page.)
+
+        // dc.SetBrush(wxBrush(wxColour(255, 0, 255)));
+        // dc.DrawRectangle(0, 0, m_Page->GetWidth(), m_Page->GetHeight());
+
+        // auto& textures = m_Page.GetPageTextures();
+
+        // for (auto& texture : textures)
+        // {
+        //     if (texture->Width != 0 && texture->Height != 0)
+        //     {
+        //         dc.DrawBitmap(texture->Bitmap, texture->X, texture->Y);
+        //     }
+        // }
     }
 }
